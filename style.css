@@ -1,0 +1,137 @@
+body {
+    background-color: #0e1113;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+    color: aliceblue;
+}
+
+.project-container-left{
+    width: 80%;
+    margin: auto;
+    padding-top: 3%;
+    padding-bottom: 3%;
+}
+
+.project-container-right{
+    width: 80%;
+    margin: auto;
+    padding-top: 3%;
+    padding-bottom: 3%;
+}
+
+.border-div{
+    border: 5px solid;
+    border-radius: 10px;
+}
+
+.flex-left{
+    display: flex;
+}
+
+.flex-right{
+    display: flex;
+}
+
+.header{
+    text-align: center;
+    font-size: 2vw;
+}
+
+.img-left{
+    width: 40%;
+    height: auto;
+    max-width: 600px;
+    max-height: 600px;
+    padding-left: 1%;
+}
+
+.img-right{
+    width: 40%;
+    height: auto;
+    max-width: 600px;
+    max-height: 600px;
+    padding-right: 1%;
+}
+
+.text-left{
+    padding: 0;
+    margin: 0;
+    padding-left: 2%;
+    padding-right: 2%;
+    font-size: 1.1vw;
+}
+
+.text-right{
+    padding: 0;
+    margin: 0;
+    padding-left: 2%;
+    padding-right: 2%;
+    font-size: 1.1vw;
+}
+
+.flex-links{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.link{
+    padding-right: 10%;
+    padding-left: 10%;
+    font-size: 2vw;
+}
+
+/* styling for the "about me" section*/
+
+.about-me{
+    text-align: center;
+    width: 50%;
+    margin: auto;
+}
+
+.name{
+    font-size: 6vw;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-picture{
+    border-radius: 50%;
+    width: 40%;
+    height: auto;
+    padding-top: 2%;
+    padding-bottom: 2%;
+}
+
+.about-me-text{
+    font-size: 1.1vw;
+}
+/* styling for canvas*/
+
+.background{
+    position: absolute;
+}
+
+/* styling for images pages*/
+.flex-images{
+    width: 80%;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.more-img{
+    max-width: 40%;
+    height: auto;
+    padding: 3%;
+}
+
+.back-button{
+    position: fixed;
+    left: 1%;
+    top: 1%;
+    font-size: 2vw;
+}
