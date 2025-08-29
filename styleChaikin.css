@@ -1,0 +1,193 @@
+body{
+    background-color: #3c3f43;
+    color: #EFE6DD;
+    font-weight: bold;
+}
+
+.clickArea{
+    border: 5px solid #EFE6DD;
+    border-radius: 10px;
+}
+
+.name{
+    text-align: center;
+    font-family: 'Alegreya Sans';
+    font-size: 40px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.flex-container{
+    display: flex;
+    justify-content: space-between;
+}
+
+.flex-child{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.flex-child-1{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.clearButton{
+    width: 300px;
+    height: 80px;
+    font-family: 'Alegreya Sans';
+    font-size: 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.undoLast{
+    width: 300px;
+    height: 80px;
+    font-family: 'Alegreya Sans';
+    font-size: 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.polygonToggle{
+    width: 300px;
+    height: 80px;
+    font-family: 'Alegreya Sans';
+    font-size: 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.hideOriginalToggle{
+    width: 300px;
+    height: 80px;
+    font-family: 'Alegreya Sans';
+    font-size: 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 300px; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #ffa600; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+  }
+
+.decreaseSteps{
+    width: 75px;
+    height: 75px;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.increaseSteps{
+    width: 75px;
+    height: 75px;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.stepVal{
+    text-align: center;
+    font-family: 'Alegreya Sans';
+    font-size: 40px;
+    margin-top: 15px;
+}
+.credits{
+    font-size: 15px;
+    text-align: right;
+}
+
+/*Modal styling*/
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    filter:alpha(opacity=70);
+    -moz-opacity:0.7;
+    -khtml-opacity: 0.7;
+    opacity: 0.7;
+    z-index: 100;
+    display: none;
+}
+
+.popup-content{
+       padding: 14px 10px;
+       line-height: 1.5;
+}
+
+.popup-onload{
+    margin: 0 auto;
+    display: none;
+    position: fixed;
+    z-index: 101;
+    top: 50%;
+    left: 50%;
+    margin-top: -300px;
+    margin-left: -300px;
+}
+
+.cnt223{
+    min-width: 600px;
+    width: 600px;
+    min-height: 150px;
+    margin: 100px auto;
+    background-color: #3c3f43;
+    position: relative;
+    z-index: 103;
+    padding: 15px 35px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px #000;
+    color: #EFE6DD;
+}
+
+.cnt223 .x:hover{
+    cursor: pointer;
+}
+
+.close{
+    color: #ff1e00;
+}
+
+.header{
+        font-size: 20px;
+}
+
+.popup-text{
+        font-size: 15px;
+}

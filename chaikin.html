@@ -1,0 +1,62 @@
+<head>
+    <title>
+        Chaikin Visualizer
+    </title>
+    <link rel="stylesheet" type="text/css" href="styleChaikin.css"/>
+</head>
+<body>
+    <p class="name"> Chaikin Visualizer </p>
+    <div class="flex-container">
+        <div class="flex-child" id = "wrapper">
+            <button type="button" id="clearButton" class="clearButton">Clear</button>
+            <button type="button" id="undoLast" class="undoLast">Undo last point</button>
+            <button type="button" id="hideOriginalToggle" class="hideOriginalToggle"></button>
+            <button type="button" id="polygonToggle" class="polygonToggle"></button>
+            <input type="range" min="0" max="10" value="0" class="slider" id="chaikinSteps">
+            <div class="flex-child-1">
+                <button type="button" id="decreaseSteps" class="decreaseSteps">-</button>
+                <p id="chaikinStepVal" class="stepVal"></p>
+                <button type="button" id="increaseSteps" class="increaseSteps">+</button>
+            </div>
+        </div>
+        <div>
+            <canvas id="clickArea" class="clickArea"></canvas>
+        </div>
+    </div>
+    <p class="credits">Made by Carl Holmqvist, 2024</p>
+    <div class='popup-onload'>
+        <div class='cnt223'>
+        
+        <div class="popup-content">
+              <h2 class = "header">Welcome to a Chaikin's corner cutting algorithm visualizer!</h2>
+              <p class = "popup-text">
+                Click inside the bordered area to place points, as many as you like!<br>
+                You can also move individual points by clicking + holding a point and then dragging it.<br>
+                Click the "+" or "-" buttons, or change drag the slider to increase/decrease the number of iterations the corner cutting algorithm runs, and see the changes in the resulting curve.
+              </p>
+        <br/>
+        <br/>
+        <a href='' class='close'>Close</a>
+        </div>
+        </div>
+        </div>
+    <script src="./chaikin.js"></script>
+    <script src='https://code.jquery.com/jquery-1.8.2.js'></script>
+    <script>$(function(){
+        var overlay = $('<div id="overlay"></div>');
+        overlay.show();
+        overlay.appendTo(document.body);
+        $('.popup-onload').show();
+        $('.close').click(function(){
+        $('.popup-onload').hide();
+        overlay.appendTo(document.body).remove();
+        return false;
+        });
+        
+        $('.x').click(function(){
+        $('.popup').hide();
+        overlay.appendTo(document.body).remove();
+        return false;
+        });
+        });</script>
+</body>
