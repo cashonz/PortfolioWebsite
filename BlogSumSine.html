@@ -1,0 +1,189 @@
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=AM_CHTML"></script>
+<body>
+        <a class = "back-button" href="main.html#SumSineWater">Back</a>
+        <div class = "Blog-title">
+            <h1 class = "name">Sum of sines water</h1>
+            <hr class = "upper-line">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                In this small blog I'll be going over my process of implementing a basic water shader for vertex displacement and light calculation.
+                I've been thinking of messing around with vertex shaders for a while, and doing some water seemed like an apt way of exploring the topic since water movement is cruicial to a believable outcome. 
+                Water is also a very common partof 3D landscapes, so knowing how they work felt like a good thing to try and understand.
+                <br><br>
+                There are a multitude of stuff I can improve with this implementation, but I'll leave that as an exercise to myself down the line. This would be stuff like:
+            </p>
+        </div>
+        <div class = "blog-text-div">
+            <ul class = "blog-list">
+                <li class =  "list-text">Fourier transformations for wave shapes</li>
+                <li class =  "list-text">specular reflections</li>
+                <li class =  "list-text">bouyancy</li>
+                <li class =  "list-text">etc.</li>
+            </ul>
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">   
+                You get the idea, don't expect any talk about those sort of things here. To start things off we're gonna need a plane to apply our water material to.
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_1_plane_in_scene.PNG">
+            </div>
+            <p class = "text-blog">
+                A very nice flat plane. To start shaping our water we define a function for calculating the height of our vertexes:
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                    `W_i(x, y, t) = A_i xx sin(D_i * (x, y) xx w_i + t xx varphi_i)`
+                </p>   
+            </div>
+            <p class = "text-blog">
+                Trough this fomula, we get the function for our entire plane through:
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `H(x, y, t) = sum A_i xx sin(D_i * (x, y) xx w_i + t xx varphi_i)`
+                </p>
+            </div> 
+            <p class = "text-blog">
+                This is the classic formula for the height of a sine-wave where we input our amplitude `A_i`, direction `D_i`, frequency `w_i` and speed `varphi_i`.
+                We also input a time variable `t`, so that we can get some movement. Simply doing one pass of this we can achieves something like this:
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_2_blue_wobbly_plane.PNG">
+            </div>
+            <p class = "text-blog">
+                Now this is just one wave. To introduce more detail we can simply add more waves, and sum up the height of our different waves.
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `W_i(x, y, t) = sum_(i=1)^n A_i xx sin(D_i * (x, y) xx w_i + t xx varphi_i)`
+                </p>
+            </div>
+            <p class = "text-blog">
+                At this point I also figured that I should implement some shading, so that we can more easily see the details of our water plane. I did this in the form of Blinn-Phong shading,
+                a very basic reflection model.<br>
+                To begin on the reflection model, we first need to figure out our normals. Luckily this is really simple do to, since we define our wave height using a set function, so we can calculate out normals at every vertex using through:
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `vec N(x,y) = (-d/dxH(x,y,t), -1, d/dyH(x, y, t))`
+                </p>
+            </div>   
+            <p class = "text-blog">
+                Since the derivative of a sum is the sum of the derivatives, we can simply sum up the normals for every time we calculate a singular contribution of a wave to the final height to get our surface normal. Don't forget to normalize the normal vectors though!<br>
+                To shade our surface, we need some important vectors, notably the light direction `vec L`, the view direction `vec V` and the halfway direction `vec H`.
+                `vec L` we can get for free in Unity from the "_WorldSpaceLightPos0"-variable, the other two we need to calculate. This is really simple however. `vec V` can be obtained by taking our camera position minus the vertex world position, and `vec H` is obtained by taking our light direction and adding it to out view direction.
+            </p>   
+            <div class="math-container">
+                <p class = "text-blog">
+                `vec V = Cam_"pos" - Vert_"Worldpos"`
+                </p>
+                <p class = "text-blog">
+                `vec H = vec L + vec V`
+                </p>
+            </div>
+            <p class = "text-blog">
+                All of these vector `vec L`, `vec V` and `vec H` are normalized of course! With these, we can implementour simple Blinn-Phong shading. For this we need the Diffuse and the Specular component of the lighting model.
+                The diffuse component we can get by dotting our light direction and normal, obtaining a measure of the angle between the two. Similarly, we get the specular component by dotting our halfway direction and normal, here however also taking the resulting dot product to the power of some number of our liking, depending on how shiny we want our surface to be.
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `D = vec L * vec N(x,y)`
+                </p>
+            </div>
+            <div class="math-container">
+                <p class = "text-blog">
+                `S = (vec H * vec N(x,y))^k`
+                </p>
+            </div>
+            <p class = "text-blog">
+                With these components, we should have some water with a bit more detail with some shading that makes us able to actually see the details. Below is out current resulting water surface, along with a some code snippets of my vertex- and fragment shader.
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_7_can_produce_decent_results.PNG">
+            </div>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_5_vertex_shader_sum_sines_lambertian.PNG">
+            </div>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_11_improved_frag_shader.PNG">
+            </div>
+            <p class = "text-blog">
+                This approach has a glaring issue however. I've said that to introduce more detail, we simply stack more waves. Well what happens when we stack a lot of them? Surely we'll get nicer looking water.
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_9_want_more_waves_for_detail_current_implementation_not_good.PNG">
+            </div>
+            <p class = "text-blog">
+                Yeah that's not right. Most of the time we get a jumbled mess. Sometimes we get something okay looking however, because all of our wave parameters are randomized, but most of the time it just looks bad.
+                This is because we're simply adding the different wave heights on top of eachother, giving us huge highs and lows. If only there was a way to add more waves on top of each other that actually introduced more detail...<br>
+                We would need to make sure the amplitudes get lowered and the frequency increased for each wave, such that every wave gives us finer details, but our final heights don't skyrocket. This is where we are in luck, because this very concept is widely utilized in many applications, and highly documented!
+                It's time for some fractional Brownian motion, of fBm for short.<br>
+                Instead of randomizing all of our wave parameters, we can instead given them a starting point, and the algorithm takes care of the rest. Our height function now looks like this:
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_12_fbm.PNG">
+            </div>
+            <p class = "text-blog">
+                We start by setting all of our necessary variables. These are obtained through a water-controller script I have in my Unity scene, allowing me to tweak my wave shapes without editing the shader.
+                For every wave we get a "random" direction, and we use our sine height function to get the heights. Notably, I've also opted for calculating a normal here, because we can use these to offset our vertex position in the plane a bit,
+                giving the illusion of our waves pushing against eachother. The fancy term for this is domain warping. After we've calculated our height, we modify the amplitude, frequency, phase and direction to obtain parameters for our next wave. Here we make sure that the amplitude gets lowered
+                by multiplying it with a value below 1, and the frequency and speed gets increased by multiplying it with a value greater than 1. We also take our direction seed and add some arbitrary number to it such that the next wave in the iteration is heading for a different direction.
+                We can now also update our vertex shader, and observe our resulting waves. 
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_15_better_param_results.PNG">
+            </div>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_13_fbm_vert_shader_portion.PNG">
+            </div>
+            <p class = "text-blog">
+                At this point I felt it necessary to improve the wave shapes a bit. There are many wave shapes to choose from, one of the most popular one being Gerstner waves since they look more "real".
+                I however was too lazy to deal with them, since choosing parameters for them can be notoriously finicky, so I opted for a simpler approach. So far we've been getting our height using:
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `W_i(x, y, t) = sum_(i=1)^n A_i xx sin(D_i * (x, y) xx w_i + t xx varphi_i)`
+                </p>
+            </div>
+            <p class = "text-blog">
+                A simple modification we can make to this height function is to just take our sine-value minus 1, and take e to the power of that value. 
+            </p>
+            <div class="math-container">
+                <p class = "text-blog">
+                `W_i(x, y, t) = sum_(i=1)^n A_i xx e^(sin(D_i * (x, y) xx w_i + t xx varphi_i) - 1)`
+                </p>
+            </div>
+            <p class = "text-blog">
+                This does not yield as good of a result as Gerstner waves, but it does make it so our waves has sharper peaks, which makes them more believable. 
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_16_tweaks_to_wave_shape.PNG">
+            </div>
+            <p class = "text-blog">
+                At this point I'm pretty much finished with the stuff I wanted to implement for my first go at a water shader. Does it look the greatest? No. But it's mine, 
+                and I know how to improve on it for a future project. To finish it off, I felt like I didn't quite agree with the sharp cutoff where the water stops rendering. One way to obscure this 
+                sharp edge would be to make a post processing distance fog shader pass. I've wanted to learn the way of implementing this for the URP anyways, so why not just do it.
+                Problem was  that just distance fog obscured all of the skybox and the sun, which makes sense. To make it look really good I have to make my own custom skybox. This is also something I've wanted to do, but felt 
+                like that was an undertaking also for another day. Nevertheless, a quick distance fog effect was implemented, you'll be the judge of if it looks better with or without the fog.<br>
+                Thank for reading my first "blog"-post on my journey of learning more shader magic! I'll leave you with two more images of the water asset, one with fog and one without, and a promise that
+                I'll improve on writing these sort of posts so they get more coherent and perhaps valuable to you the reader :)
+            </p>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_20_fog_obscures_skybox.PNG">
+            </div>
+            <div class="image-container">
+                <img class = "blog-img" src="imagesSumSineWater/img_20_no_fog.PNG">
+            </div>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>      
+</body>
