@@ -135,3 +135,60 @@ body {
     top: 1%;
     font-size: 2vw;
 }
+
+.blog-text-div{
+    padding-top: 1%;
+    padding-left: 15%;
+    padding-right: 15%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    flex-wrap: wrap; 
+}
+
+.blog-title{
+    text-align: center;
+    width: 70%;
+    margin: auto;
+}
+
+.text-blog{
+    padding: 0;
+    margin: 0;
+    padding-left: 2%;
+    padding-right: 2%;
+    font-size: 1.2vw;
+    text-align: justify;
+    line-height: 1.3;
+}
+
+.list-text{
+    font-size: 1.2vw;
+    line-height: 1.3;
+    padding: 0;
+    margin: 0;
+}
+
+.blog-list{
+    justify-content: left;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;  /* centers the image horizontally */
+    margin: 2em 0;
+    width: 100%;
+}
+
+.image-container img {
+    max-width: 80%;  /* or 100% for full width */
+    height: auto;
+    border-radius: 10px;
+}
+
+.math-container {
+    display: flex;
+    justify-content: center;  /* centers the image horizontally */
+    width: 100%;
+    margin: 2em 0;
+}
