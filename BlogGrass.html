@@ -10,7 +10,32 @@
         </div>
         <div class = "blog-text-div">
             <p class = "text-blog">
-                TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+                For this little project, I figured I should implement another very important component of virtual worlds, grass! The interesting stuff with grass is that we need a lot of it for it to achieve a believable result, regardless of the general art direction. Luckily, <a href = "https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-7-rendering-countless-blades-waving-grass" target="_blank" class = "textlink">Nvidia GPU gems chapter 7</a> covers the rendering of countless blades of grass and how to animate them in a vertex shader, so I’ll be using that as my starting points. I’ll also be implementing all of this in Unity, so we can take advantage of everything Unity has to offer. The things I want to do before I call it quits is the following:
             </p>
+        </div>
+        <div class = "blog-text-div">
+            <ul class = "blog-list">
+                <li class =  "list-text">Create a grass model</li>
+                <li class =  "list-text">Create a grass texture</li>
+                <li class =  "list-text">Put lots of grass into our 3D scene</li>
+                <li class =  "list-text">Make sure the grass adheres to the terrain it’s placed upon correctly</li>
+                <li class =  "list-text">Animate the grass so that it looks like it’s moving along with the wind</li>
+            </ul>
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                The first two points are very straightforward. I first opened up blender and slapped three planes together such that they intersect each other in the centre (<a href = "https://developer.download.nvidia.com/books/gpugems/fig07-04.jpg" target="_blank" class = "textlink">Figure 7-4</a> of the related GPU gems article shows this  configuration clearly) and then merged everything into one mesh. I then opened up GIMP to draw my texture, making sure we have a transparent background so that we can utilize the alpha channel when rendering our grass. Putting this model and slapping our texture on it in Unity gives us the following:
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/1_beautiful_tuft_of_grass.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                Now obviously the black areas of our grass object are not desirable. Luckily we can remedy this by actually telling Unity that this is supposed to be a transparent object. We will want a custom shader for our grass material when we do our vertex animating, so to make sure we tell unity that this is a transparent material we add some necessary tags and commands in the subshader before our shaderpass, such as putting it in the transparent render queue and setting our blend-mode correctly.
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/2_transparency.PNG">
         </div>
 </body>

@@ -173,6 +173,7 @@ body {
 
 .blog-list{
     justify-content: left;
+    padding-left: 20%;
 }
 
 .image-container {
@@ -195,3 +196,6 @@ body {
     margin: 2em 0;
 }
 
+.textlink{
+    font-size: 1.2vw;
+}
