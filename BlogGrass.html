@@ -38,4 +38,80 @@
         <div class="image-container">
             <img class = "blog-img" src="ImagesWavyGrass/2_transparency.PNG">
         </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                With our transparent grass object, we now need to tell Unity to instance lots of these. We could just place a bunch of objects, but that would tank our performance. Luckily, what we can do is to instance them on the GPU instead, which is ideal if we have a lot of the same objects. Even better, Unity offers an easy function call through their Graphics API to do this. All we need to do is pass in the mesh we want to instantiate, the material we want to put on it, and an array of 4x4-matrices containing the world position, rotation vector and scale of our meshes. To begin, let’s just put lots of grass meshes in the xz-plane, and worry about the y-component later.
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/3_lots_of_instances.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                That seems to work, but it looks weird with them all neatly lined up, so let us introduce a slight offset to our grass position so we can jitter them around their original world position.
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/4_random_offsets_rot_scale.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                Now the grass is placed a bit more like one would imagine grass to be placed. They’re still just floating in the world however, so let’s whip up some code to create a terrain mesh. With our terrain mesh, we also want to make sure that we instantiate our grass on positions where the terrain plane actually exists. To continue keeping it simple, I’ll worry about the y-component in a little while and stay in the xz-plane for a while
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/5_put_grass_on_a_plane.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                A beautiful monocolor flat piece of  geometry if I do say so myself. Now however we can start worrying about the y-component. I begin with introducing some height variation to the terrain itself. I did this by doing some classic Perlin-noise fBm shenanigans, giving us a terrain which smoothly transitions between different heights, and in which we can control the level of detail we're getting. With our terrain having a height, we now need to make sure that the grass actually appears on top of the terrain. We also want to angle the grass such that it aligns to the normals of the terrain so that it looks like it’s growing from the ground itself. What I did was initialize the terrain before I started doing calculations on our grass positions and rotations, which was good because now we have access to all of the terrain mesh information. For the y-component of our grass position, we can simply look up the corresponding y-position of our terrain in the xz-plane to get the height, and place the grass accordingly. For the rotation, we can utilize the normals of the terrain mesh. Unity provides us with a handy API call for their Quaternion class to go from one rotation vector to another, namely the: <br><br><b>"Quaternion.FromToRotation(Vec3 from, Vec3 to)"</b>-function.<br><br> For the from-vector, we feed it a vector pointing straight up (like (0, 1 ,0)), and our to-vector is the corresponding surface normal at the position where we’re placing our grass.
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/6_introduce_plane_shape_update_grass_params_accordingly.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                Now at a distance this looks pretty decent, and I think I’ll leave the grass positions and rotations as is. There are some problems with this implementation however. Because I’m just getting the height and rotation from a vertex index, but also jittering our grass position in the xz-plane, the grass will have a slight mismatch with its actual position in the xz-plane, and the height and rotation at that specific point. To remedy this, I would need to bilinearly interpolate the height and normals, which is not too big of a task actually, but if I leave the jittering to a relatively low value, and don’t look too close, this mismatch isn’t really noticeable, so I chose to not care about it in this project.
+                <br><br>
+                With our grass instantiating pretty much done, we can now move on to the animation of the grass. We want the grass to look like it’s swaying in the wind. We also only want the top of our grass to move, and the bottom of it  to stay perfectly still. Accessing only the top vertices is a simple task, we can simply check the local heights of our grassmeshes. If we’re over a certain threshold we can animate the vertices, otherwise we skip them. Now to actually animate the grass, the GPU gems article mentions trigonometric functions. This is probably because they’re periodical, giving us a swaying effect. I played around with this for a while, and while it did work, I had a difficult time getting the animations to be coherent with each other. Every blade of grass waved to the beat of their own drum. This looks messy, one would expect chunks of grass to move somewhat in unison, as to appear like they’re reacting to gusts of wind. After a while of playing with trigonometric functions, I gave up and started looking for another solution. I realized that I could once again make use of some Perlin-noise fBm shenanigans. If I had a texture with some gradient noise in it, which also has a set range of values, I could achieve the back-and-forth swaying motion like the trig functions do, while also “grouping” clumps of grass together thanks to the properties of gradient noise. We can also scroll this gradient noise if we feed it a time-variable, giving us the illusion that some wind is travelling along our little scene.
+            </p>
+        </div>
+        <div class="video-container">
+            <video autoplay loop muted><source src = "ImagesWavyGrass/7_simple_vertex_shading_noise.mp4" type="video/mp4"/></video>
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                As you’ve probably noticed, I changed the grass look a bit. From here on out I’ll be playing with the looks of the scene according to my own whims, sorry about that! I also added the functionality in the grass fragment shader to draw them with the texture I drew, or to simply interpolate the final color between a bottom-color and a top-color that can be decided in the editor. Nevertheless, the video shows the grass moving pretty coherently, waving in the wind. Looks pretty good I think! The aliasing is a bit much though, but it is what it is…
+                <br><br>
+                Now we’ve pretty much accomplished all I wanted to do, but there are some things bothering me. First of all, I want to be able to not have to place grass everywhere. I’m thinking that this can be done through a texture as well. When we decide our grass position, we could sample a texture and check its value at that point. If it’s lower than some threshold, we simply choose to not spawn grass there. This should also give us the ability to remove/add grass at runtime through its texture, or “grassMap” if you will, which is something I might do in the future, but not here.
+            </p>
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/8_filter_instance_spot_from_texture.PNG">
+        </div>
+        <div class="image-container">
+            <img class = "blog-img" src="ImagesWavyGrass/9_filter_instance_spot_from_texture_heightmap.PNG">
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                Secondly, currently if we want to have a lot of grass, it takes quite some time to initialize all of our grass positions, so I want to optimize it a bit. Calculating these positions are independent of each other, and could be done in parallel, so it seems like a great opportunity to move our position and rotation calculations of our grass to the GPU in the form of a compute shader. Doing this was a relatively simple task, I just needed to make sure I sent over all of the information I needed through some compute buffers, and I  had to manually implement the <b>Quaternion.FromToRotation</b>-function. 
+                <br>
+                Doing the grass calculations on the CPU if we wanted 256x256 grass meshes took about 35 seconds, not that great. On the GPU however, it took about 0.01s, which is pretty good! This was a huge quick and easy optimization that I’m happy I took the time to do.
+            </p>
+        </div>
+        <div class = "blog-text-div">
+            <p class = "text-blog">
+                At this point I'm deeming this little project done for now. I played around some with the colors of the terrain and grass, along with some anti-aliasing to make everything look a bit more crisp, and added a nice little skybox along with some fog to obscure the abrupt ending of our terrain. There’s more work to be done here in the future, such as making the terrain infinite, dividing everything into chunks, doing some distance-based culling and/or LOD-stuff for further optimizing, and to maybe take the terrain gradient into account when we check if a certain position on the terrain is a valid place for grass. Those are problems for another day however, so I'll leave you with a final video of our grass scene, thanks for reading :)
+            </p>
+        </div>
+        <div class="video-container">
+            <video autoplay loop muted><source src = "ImagesWavyGrass/10_final_scene.mp4" type="video/mp4"/></video>
+        </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
 </body>
