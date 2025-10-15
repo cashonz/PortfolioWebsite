@@ -95,7 +95,7 @@
         </div>
         <div class = "blog-text-div">
             <p class = "text-blog">
-                Secondly, currently if we want to have a lot of grass, it takes quite some time to initialize all of our grass positions, so I want to optimize it a bit. Calculating these positions are independent of each other, and could be done in parallel, so it seems like a great opportunity to move our position and rotation calculations of our grass to the GPU in the form of a compute shader. Doing this was a relatively simple task, I just needed to make sure I sent over all of the information I needed through some compute buffers, and I  had to manually implement the <b>Quaternion.FromToRotation</b>-function. 
+                Secondly, currently if we want to have a lot of grass, it takes quite some time to initialize all of our grass positions, so I want to optimize it a bit. Calculating these positions are independent of each other, and could be done in parallel, so it seems like a great opportunity to move our position and rotation calculations of our grass to the GPU in the form of a compute shader. Doing this was a relatively simple task, I just needed to make sure I sent over all of the information I needed through some compute buffers, and I  had to manually implement the <b>Quaternion.FromToRotation</b>-function on the GPU. 
                 <br>
                 Doing the grass calculations on the CPU if we wanted 256x256 grass meshes took about 35 seconds, not that great. On the GPU however, it took about 0.01s, which is pretty good! This was a huge quick and easy optimization that I’m happy I took the time to do.
             </p>
@@ -103,6 +103,8 @@
         <div class = "blog-text-div">
             <p class = "text-blog">
                 At this point I'm deeming this little project done for now. I played around some with the colors of the terrain and grass, along with some anti-aliasing to make everything look a bit more crisp, and added a nice little skybox along with some fog to obscure the abrupt ending of our terrain. There’s more work to be done here in the future, such as making the terrain infinite, dividing everything into chunks, doing some distance-based culling and/or LOD-stuff for further optimizing, and to maybe take the terrain gradient into account when we check if a certain position on the terrain is a valid place for grass. Those are problems for another day however, so I'll leave you with a final video of our grass scene, thanks for reading :)
+                <br>
+                The code for all of this is publicly available on my <a href = "https://github.com/cashonz/Grass" target="_blank" class = "textlink">github</a>.
             </p>
         </div>
         <div class="video-container">
