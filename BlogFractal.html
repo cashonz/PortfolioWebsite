@@ -1,0 +1,296 @@
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=AM_CHTML"></script>
+<body>
+    <a class = "back-button" href="index.html#Grass">Back</a>
+    <div class = "Blog-title">
+        <h1 class = "name">Rendering Julia sets and the Mandelbulb</h1>
+        <hr class = "upper-line">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            This time around I felt like trying my hands on rendering some 3D fractals, and more specifically some Julia sets and the Mandelbulb. I however really had no clue how to tackle this, which is always an exciting prospect, an opportunity to learn! So I started off by doing some research into how people have rendered 3D fractals before, and found some amazing sources. Most of my implementations for this project follows previous works done by <a href = "https://dl.acm.org/doi/pdf/10.1145/74333.74363" target="_blank" class = "textlink">Hart et. al (1989)</a>, <a href = "https://www.cs.cmu.edu/~kmcrane/Projects/QuaternionJulia/paper.pdf" target="_blank" class = "textlink">Crane, K. (2005)</a>, and articles by <a href = "http://blog.hvidtfeldts.net/" target="_blank" class = "textlink">Mikael Hvidtfeldt Christensen</a> and <a href = "https://iquilezles.org/articles/" target="_blank" class = "textlink">Inigo Quilez</a>. There are a multitude of other great sources for fractal rendering out there, but these are the ones that helped me the most.<br>
+            After doing my due diligence and reading through all of my material, I could finally form a gameplan. We need to, in order:
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <ul class = "blog-list">
+            <li class =  "list-text">Implement a ray marcher</li>
+            <li class =  "list-text">Implement distance estimators for the fractals</li>
+            <li class =  "list-text">Implement some way to color and shade the fractals</li>
+        </ul>
+    </div>  
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            A ray marcher is pretty straight forward theoretically. For every pixel on our screen, we shoot a ray into the scene, and see if it intersects something. To determine if we actually “hit” an object, we define some value `epsilon`, and when we are at a distance lower than our `epsilon` to the object, we consider the object as hit. If it does, we can output some color to that pixel, otherwise we can output some background color, or whatever we want really. I’ll just be doing a background color however. A ray can be described by the following:
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `p = p0 + t xx direction`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Our `p0` is easy to figure out, since it’s just the camera position. From this position we advance into the scene in our direction, with the distance we’ve travelled noted by `t`. This direction however requires some math to figure out, unlucky, but not too bad. To figure out this direction in world space, we need to transform the pixel position of our image texture. That process goes something like this:
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <ul class = "blog-list">
+            <li class =  "list-text">Convert pixel/texture coordinate into NDC space</li>
+            <li class =  "list-text">Convert NDC space into screen space</li>
+            <li class =  "list-text">Convert screen space into camera space</li>
+            <li class =  "list-text">Convert camera space into world space</li>
+        </ul>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Or expressed in math:
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `ndcS = ((texX + 0.5) / (screenWidth), (texY + 0.5) / (screenHeight))`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `screenS = (2 xx ndcSX - 1, 1 - 2 xx ndcSY)`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `cameraS = (screenSX xx aspectRatio xx tan((fov)/2), screenSY xx tan((fov)/2))`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            The camera space position `cameraS` can then be converted to world space through multiplying it with the CameraToWorld-matrix.
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            With our `p0` and direction sorted out, we can start marching along the ray to hopefully render some stuff. How long we step along the ray is determined by how far we are to the object. If we just march the distance to the closest point we’re evaluating, we can guarantee that we are not overshooting our object. The second image in this <a href = "http://blog.hvidtfeldts.net/index.php/2011/06/distance-estimated-3d-fractals-part-i/" target="_blank" class = "textlink">blogpost</a> illustrates this nicely. To test the functionality out, I chose to initially output some color based on the amount of steps taken until some object is reached. I also lifted a simple distance estimation function of a sphere from <a href = "https://iquilezles.org/articles/distfunctions/" target="_blank" class = "textlink">Inigo Quilez’s page of 3D SDFs</a>, to see if I got any output at all.
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/1_Ray_Marching_Sphere.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Seems to be working pretty alright, so that’s step one done. Now instead of using the sphere distance estimator, we instead want to implement a distance estimator for the fractal we want to render. I’ll start with some Julia sets. This equation is given in Hart et al. in equation 8, but slightly wrong, as pointed out by Crane. K and <a href = "http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/" target="_blank" class = "textlink">Hvidtfeldt Christensen</a>. The distance estimator is given by:      
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `d(z) = abs(f^n(z))/(2abs(f'^n(z))) xx lnabs(f^n(z))`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `"Where " f^n(z) " is the n-fold application of " f(z) = z^2 + c`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `"And " f'^n(z) " is the n-fold application of " f'(z) = 2xxzxxz'+1`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Now z is  a complex number, which is difficult to work with. Luckily, we can express z in any algebraic system closed under  addition and multiplication, such as the quaternions. So from here on out, I’ll consider z to be a quaternion and apply multiplications and addition on the as such.<br>
+            Applying this instead of the sphere distance estimator in our ray marcher gives us the following:
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/2_3D_Slice_Of_Julia_Set_Strange_banding.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+             Which is something! But obviously wrong. If we decrease the number of times we iterate `f^n(z)` the weird artifacts disappear:   
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/3_3D_Slice_Of_Julia_Set_no_banding.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            We don’t really want to lower this number though, as it gives us less detail. To fix this artifacting, Hart et al. describes in section 3.4 that we can introduce a bounding volume for our fractal.  So if our ray goes outside this volume, we terminate our ray march.
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/5_Banding_Fixed_For_Higher_Iterations_Through_Escape_Radius.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            That’s better, now we can get some more detail by applying `f(z)` more times in our distance estimator. Doing it too much still leads to some aliasing however.  
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/6_Artefacts_For_Higher_Iterations_Due_To_Constant_Epsilon_Maybe.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            There are some clear grainy parts of our image. I suspected this was because our `epsilon` was constant, terminating before we could output finer details. Hart et al. touches upon this as well in section 4.2, suggesting the implementation of a clarity function, which calculates `epsilon` as we iterate over our ray, depending on how far our ray has travelled so far:       
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `epsilon = Gamma(d) = alphad^delta`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            This function takes the distance travelled as input, takes it to some power delta and multiplies it by some constant `alpha`, where `alpha` can be set to be an order of magnitude smaller than the pixel width. An `alpha` too small produces a noisy result, and an `alpha` too large washes out detail, as commented on by Hart et. al. The `delta` variable is usually set to either 0, 1 or 2, depending on what type of effect is desired. I went with `delta` = 1. The effects of different `delta`-values are listed in table 1 in Hart et al.   
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/8_Better_Params_Plus_ClarityFunction_Still_Aliasing.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Now we have some finer details more visible. Those with a keen eye might have noticed that I have stepped away from coloring the fractal based on the total steps taken, and instead have taken to implementing some phong-shading. The tricky part of this was getting the normals of our surface, since it’s necessary to calculate the diffuse and specular parts of our shading. Getting our normals for any given point in our fractal is not too bad however, as we can utilize the finite difference method, both described by Hart et al. and in this <a href = "http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-ii-lighting-and-coloring/" target="_blank" class = "textlink">post</a>. Basically, for every point `p` where we've intersected the fractal, we take a step in positive and negative `x`, `y` and `z` direction and take the difference of the `d(z)` value of both the positive and negative step for all `x`, `y` and `z` values.     
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `nX = DE(p + DeltaX) - DE(p - DeltaX)`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `nY = DE(p + DeltaY) - DE(p - DeltaY)`
+        </p>   
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `nZ = DE(p + DeltaZ) - DE(p - DeltaZ)`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            The resulting normal vector `n` is then also normalized of course. I suspect this might introduce some aliasing for areas with finer detail, but I did not try any other approaches to derive the normals to confirm this however. This is something I’ll probably investigate in the future, but it works pretty well for this implementation if we avoid settings which give finer details, so I’m keeping it for now.     
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+             Technically I’ve implemented what I’ve wanted now, except from the mandelbulb, but for that we can grab a distance estimator from somewhere, such as from <a href = "http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/" target="_blank" class = "textlink">here</a>. This distance estimator for the mandelbulb utilizes polar coordinates instead of quaternions, but the result is the same.   
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            I still want to improve some upon my current implementation. First of all, I want to be able to rotate our Julia sets. Secondly, I want to be able to slice my fractals along some 2D-plane, so I can peek inside the fractals. Thirdly, I want some nicer shadows, so we can ray march some soft shadows as well. And lastly, I kind of want to see what happens when we combine the mandelbulb and some julia set.
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+             To rotate a quaternion, we need to solve the equation   
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `z_("rot") = rzr^-1`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            where `r` is the rotation quaternion, and `r^-1` its conjugate. Given an axis to rotate the quaternion around, and an amount to rotate `theta`, `r` is given by:  
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `r = ("axis"X xx sin(theta), "axis"Y xx sin(theta), "axis"Z xx sin(theta), cos(theta))`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            and its conjugate `r^-1` by:    
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `r^-1 = (-rX, -rY, -rZ, cos(theta))`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            Now we  can apply this rotation continuously when iterating over `f^n(z)` to rotate our Julia set fractal.    
+        </p>
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            With that out of the way, let’s slice our fractals! To do this, I figured I could just define some plane, and then start my ray marching from there. This way we can kind of ignore the parts of the fractal that lies in front of the plane, giving us a slicing effect.
+            <br>A plane is easily defined by:
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `ncdot(p - p0) = 0`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+             to get this point p, we can define it as something like:   
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `p = slice Val xx n`
+        </p>   
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            This sliceVal is an input I can change, and scaling our plane normal with it gives the effect of moving the plane along its “up”-axis, which depends on what the normal is set to. If we have a point on the plane and the normal, we can check the distance to the plane along our viewing vector by:    
+        </p>
+    </div>
+    <div class="math-container">
+        <p class = "text-blog">
+            `t = ((p - p_"cam")cdotn) / (dircdotn)`
+        </p>   
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/9_Slicing_Of_Fractal_Along_Plane_Coloration_makes_Difficult_To_See_Detail.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            This looks pretty neat. The surface looks a bit weird though, and this is because I’m not calculating the normals along this surface correctly. But let’s ignore that. One neat effect of this slicing is what happens when we set the max ray steps to 1, we can get a 2D slice of our fractal.
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/10_Pattern_More_Clear_With_1_Ray_Step.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+            To implement soft shadows in ray marching distance functions, I followed the implementation of Inigo Quilez in this <a href = "https://iquilezles.org/articles/rmshadows/" target="_blank" class = "textlink">post</a>, but the basic idea is the following: We start at our intersection point of the fractal, and find the vector pointing to the light source. We then march along this vector in the same manner as when we ray marched our fractal. Based  on how close the ray comes to the fractal, or if it intersects it, we shadow it accordingly. Inigo Quilez explains it the best, so go read his post about it if you want to know more :)   
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/11_Improved_Lighting.PNG">
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/12_Improved_Lighting.PNG">
+    </div>
+    <div class = "blog-text-div">
+        <p class = "text-blog">
+             Here’s where I deem this iteration of my fractal rendering done. I wanted to play more with <a href = "https://en.wikipedia.org/wiki/Iterated_function_system" target="_blank" class = "textlink">iterated function systems</a> in combination with signed distance functions of simple 3D-objects to render stuff like the <a href = "https://en.wikipedia.org/wiki/Menger_sponge" target="_blank" class = "textlink">menger sponge</a>, but doing this in my current pipeline was cumbersome, and I figured that I should make my own graphics renderer to have more control of the rendering pipeline if I want to play around with fractals more, which I do. I also want to supersample the images to reveal more detail/get more crisp images, perhaps do some path tracing for better lighting, and play around with different methods of coloring the fractals and the background. So stay tuned for that!  I’ll leave you with an image of a rendered mandelbuld, an intersection of a julia set fractal and the mandelbulb (which was obtained by combining the julia set and mandelbulb distance estimators through a max-function) and a last julia set image.
+             <br>
+                The code for all of this is publicly available on my <a href = "https://github.com/cashonz/Julia-Sets-and-the-Mandelbulb/tree/main" target="_blank" class = "textlink">github</a>. If you got this far, thank you for reading :) Hopefully it was interesting, and perhaps even helpful to someone!
+        </p>
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/13_Mandelbulb_Higher_Resolution.PNG">
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/14_Combining_estimators.PNG">
+    </div>
+    <div class="image-container">
+        <img class = "blog-img" src="imagesFractal/15_Higher_Resolution_Julia.PNG">
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</body>
